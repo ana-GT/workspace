@@ -36,14 +36,18 @@ void benchmark_client::onConnect() {
 
     // Get the corresponding device
     qDebug() << "Setting address...";
-    QBluetoothAddress address(QString("00:15:83:0C:BF:EB"));
+    QBluetoothAddress address(QString("A4:9A:58:AA:9D:9D")); // phone
+    //QBluetoothAddress address(QString("00:1A:7D:DA:71:13")); // powell
     if( mServiceDiscoveryAgent->setRemoteAddress( address ) == false ) {
-        ui->connectStatus_label->setText(QString("Could not access the robot's address"));
+        ui->connectStatus_label->setText(QString("Could NOT access robot"));
         return;
+    } else {
+        ui->connectStatus_label->setText(QString("Could YES access robot "));
     }
 
     // Access the service to communicate, if available
-    mServiceDiscoveryAgent->start();
+    qDebug() << "Accesssing full discovery...";
+    mServiceDiscoveryAgent->start( QBluetoothServiceDiscoveryAgent::FullDiscovery );
 
 }
 
@@ -52,7 +56,9 @@ void benchmark_client::onConnect() {
  */
 void benchmark_client::onServiceDiscovered( QBluetoothServiceInfo _serviceInfo) {
     QString name = _serviceInfo.serviceName();
-    qDebug() << "Service name: "<< name;
+    qDebug() << "Found a service ";
+    QListWidgetItem *item = new QListWidgetItem( name );
+    ui->foundServices->addItem(item);
 }
 
 /**

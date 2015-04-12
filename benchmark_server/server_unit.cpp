@@ -23,6 +23,7 @@ server_unit::~server_unit() {
  */
 void server_unit::start( const QBluetoothAddress &_localAdapter ) {
     if( mRfcommServer ) {
+        qDebug("We don't create a new rfcomm server since it is already ON...or so it seems \n");
         return; // Already server service is ON
     }
     qDebug()<< "Starting server... ";
@@ -34,9 +35,13 @@ void server_unit::start( const QBluetoothAddress &_localAdapter ) {
         qDebug() << "Cannot bind RFCOMM server to local adapter";
     }
 
+    quint16 portNumber = mRfcommServer->serverPort();
+    qDebug() << "Port number for RFCOMM connection server: "<< portNumber;
+
+
     // Set service info
     mServiceInfo.setAttribute(QBluetoothServiceInfo::ServiceName, tr("Crichton Server"));
-    mServiceInfo.setAttribute(QBluetoothServiceInfo::ServiceDescription, tr("Crichton control machine listening"));
+    mServiceInfo.setAttribute(QBluetoothServiceInfo::ServiceDescription, tr("Control machine service"));
     mServiceInfo.setAttribute(QBluetoothServiceInfo::ServiceProvider, tr("golems.org"));
     QBluetoothServiceInfo::Sequence publicBrowse;
     publicBrowse << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::PublicBrowseGroup));
@@ -45,8 +50,8 @@ void server_unit::start( const QBluetoothAddress &_localAdapter ) {
     QBluetoothServiceInfo::Sequence classId;
 
     classId << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::SerialPort));
-    mServiceInfo.setAttribute(QBluetoothServiceInfo::BluetoothProfileDescriptorList,
-                             classId);
+    //mServiceInfo.setAttribute(QBluetoothServiceInfo::BluetoothProfileDescriptorList,
+     //                        classId);
 
     classId.prepend(QVariant::fromValue(QBluetoothUuid(serviceUuid)));
 
@@ -58,9 +63,6 @@ void server_unit::start( const QBluetoothAddress &_localAdapter ) {
 
     QBluetoothServiceInfo::Sequence protocolDescriptorList;
     QBluetoothServiceInfo::Sequence protocol;
-    protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::L2cap));
-    protocolDescriptorList.append(QVariant::fromValue(protocol));
-    protocol.clear();
     protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::Rfcomm))
              << QVariant::fromValue(quint8(mRfcommServer->serverPort()));
     protocolDescriptorList.append(QVariant::fromValue(protocol));
