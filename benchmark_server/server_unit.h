@@ -10,14 +10,14 @@ public:
     explicit server_unit( QObject* parent  = 0 );
     ~server_unit();
 
-    void start( const QBluetoothAddress &_localAdapter = QBluetoothAddress() );
-    void stop();
+    void startServer( const QBluetoothAddress &_localAdapter = QBluetoothAddress() );
+    void stopServer();
 
 public slots:
-    void sendFeedback();
+    void sendMessage( const QString &_message );
 
 signals:
-    void messageReceived( QString &_sender,
+    void messageReceived( const QString &_sender,
                           const QString _msg );
     void clientConnected( const QString &_name );
     void clientDisconnected( const QString &_name );
@@ -30,5 +30,5 @@ private slots:
 private:
     QBluetoothServer *mRfcommServer;
     QBluetoothServiceInfo mServiceInfo;
-    QList<QBluetoothSocket*> mClientSockets;
+    QBluetoothSocket* mClientSocket;
 };

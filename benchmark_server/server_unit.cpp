@@ -12,31 +12,28 @@ server_unit::server_unit( QObject* parent ) :
 
 /**
  * @brief server_unit::~server_unit
+ * @param
  */
 server_unit::~server_unit() {
-    stop();
+    stopServer();
 }
 
 /**
  * @brief server_unit::start
  * @param _localAdapter
  */
-void server_unit::start( const QBluetoothAddress &_localAdapter ) {
+void server_unit::startServer( const QBluetoothAddress &_localAdapter ) {
     if( mRfcommServer ) {
-        qDebug("We don't create a new rfcomm server since it is already ON...or so it seems \n");
-        return; // Already server service is ON
+        return;
     }
-    qDebug()<< "Starting server... ";
-    // Create the server
+
+   // Create the server
     mRfcommServer = new QBluetoothServer( QBluetoothServiceInfo::RfcommProtocol, this );
     this->connect( mRfcommServer, SIGNAL(newConnection()), this, SLOT(clientConnected()) );
     bool result = mRfcommServer->listen( _localAdapter );
     if( !result ) {
         qDebug() << "Cannot bind RFCOMM server to local adapter";
     }
-
-    quint16 portNumber = mRfcommServer->serverPort();
-    qDebug() << "Port number for RFCOMM connection server: "<< portNumber;
 
 
     // Set service info
@@ -69,33 +66,70 @@ void server_unit::start( const QBluetoothAddress &_localAdapter ) {
     mServiceInfo.setAttribute(QBluetoothServiceInfo::ProtocolDescriptorList,
                              protocolDescriptorList);
 
-
     mServiceInfo.registerService( _localAdapter );
-    qDebug()<<"Finished setting up server" ;
+
 }
 
-void server_unit::stop() {
+void server_unit::stopServer() {
     // Unregister service
     mServiceInfo.unregisterService();
     // Close Sockets
-    qDeleteAll( mClientSockets );
+    mClientSocket->close();
     // Close server
     delete mRfcommServer;
     mRfcommServer = 0;
 }
 
-void server_unit::sendFeedback() {
+/**
+ * @brief server_unit::sendMessage
+ * @param _msg
+ */
+void server_unit::sendMessage( const QString &_msg ) {
+    QByteArray text = _msg.toUtf8() + '\n';
 
+    mClientSocket->write( text );
 }
 
+/**
+ * @function clientConnected
+ */
 void server_unit::clientConnected() {
 
+    mClientSocket = mRfcommServer->nextPendingConnection();
+    if( !mClientSocket ) { return; }
+
+    QObject::connect( mClientSocket, SIGNAL(readyRead), this, SLOT(readSocket()) );
+    QObject::connect( mClientSocket, SIGNAL(disconnected), this, SLOT(clientDisconnected()) );
+
+    emit clientConnected( mClientSocket->peerName() );
 }
 
+/**
+ * @brief server_unit::clientDisconnected
+ */
 void server_unit::clientDisconnected() {
 
+        QBluetoothSocket* socket = qobject_cast<QBluetoothSocket*>( sender() );
+        if( !socket ) { return; }
+
+        emit clientDisconnected( socket->peerName() );
+        socket->deleteLater();
+
 }
 
+/**
+ * @brief server_unit::readSocket
+ */
 void server_unit::readSocket() {
+
+        // In our case we only have one socket mSocket, so this is not really necessary
+       QBluetoothSocket* socket = qobject_cast<QBluetoothSocket*>( sender() );
+        if( !socket ) { return; }
+
+        while( socket->canReadLine() ) {
+            QByteArray line = socket->readLine().trimmed();
+            emit messageReceived( socket->peerName(),
+                                  QString::fromUtf8(line.constData(), line.length()));
+        }
 
 }

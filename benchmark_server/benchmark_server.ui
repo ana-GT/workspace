@@ -32,45 +32,43 @@
       <property name="title">
        <string>Status Information</string>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>120</y>
-         <width>221</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Connected to:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>90</y>
-         <width>61</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Debug:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="debugStatus_label">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>90</y>
-         <width>61</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Debug:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QLabel" name="msgs_label">
+         <property name="text">
+          <string>Messages:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="debugStatus_label">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="start_pushButton">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="stop_pushButton">
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
