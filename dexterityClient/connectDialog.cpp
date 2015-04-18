@@ -57,8 +57,9 @@ void connectDialog::scan() {
 void connectDialog::startDiscovery( const QBluetoothUuid &_uuid ) {
 
     // Get the corresponding device
-    QBluetoothAddress address(QString("A4:9A:58:AA:9D:9D")); // phone
+    //QBluetoothAddress address(QString("A4:9A:58:AA:9D:9D")); // phone
     //QBluetoothAddress address(QString("00:1A:7D:DA:71:13")); // powell
+    QBluetoothAddress address(QString("00:1A:7D:DA:71:13")); // chicky - FOR SURE
 
 
     if( mDiscoveryAgent->setRemoteAddress( address ) == false ) {
