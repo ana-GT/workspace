@@ -40,7 +40,6 @@
 
 #include "chat.h"
 #include "remoteselector.h"
-#include "chatserver.h"
 #include "chatclient.h"
 
 #include <qbluetoothuuid.h>
@@ -82,16 +81,6 @@ Chat::Chat(QWidget *parent)
         adapter.setHostMode(QBluetoothLocalDevice::HostDiscoverable);
     }
 
-    //! [Create Chat Server]
-    server = new ChatServer(this);
-    connect(server, SIGNAL(clientConnected(QString)), this, SLOT(clientConnected(QString)));
-    connect(server, SIGNAL(clientDisconnected(QString)), this, SLOT(clientDisconnected(QString)));
-    connect(server, SIGNAL(messageReceived(QString,QString)),
-            this, SLOT(showMessage(QString,QString)));
-    connect(this, SIGNAL(sendMessage(QString)), server, SLOT(sendMessage(QString)));
-    server->startServer();
-    //! [Create Chat Server]
-
     //! [Get local device name]
     localName = QBluetoothLocalDevice().name();
     //! [Get local device name]
@@ -99,8 +88,7 @@ Chat::Chat(QWidget *parent)
 
 Chat::~Chat()
 {
-    qDeleteAll(clients);
-    delete server;
+    client->deleteLater();
 }
 
 //! [clientConnected clientDisconnected]
@@ -125,12 +113,12 @@ void Chat::newAdapterSelected()
 {
     const int newAdapterIndex = adapterFromUserSelection();
     if (currentAdapterIndex != newAdapterIndex) {
-        server->stopServer();
+
         currentAdapterIndex = newAdapterIndex;
         const QBluetoothHostInfo info = localAdapters.at(currentAdapterIndex);
         QBluetoothLocalDevice adapter(info.address());
         adapter.setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-        server->startServer(info.address());
+
         localName = info.name();
     }
 }
@@ -151,11 +139,7 @@ int Chat::adapterFromUserSelection() const
 //! [clientDisconnected]
 void Chat::clientDisconnected()
 {
-    ChatClient *client = qobject_cast<ChatClient *>(sender());
-    if (client) {
-        clients.removeOne(client);
         client->deleteLater();
-    }
 }
 //! [clientDisconnected]
 
@@ -179,7 +163,7 @@ void Chat::connectClicked()
 
         // Create client
         qDebug() << "Going to create client";
-        ChatClient *client = new ChatClient(this);
+        client = new ChatClient(this);
 qDebug() << "Connecting...";
 
         connect(client, SIGNAL(messageReceived(QString,QString)),
@@ -190,7 +174,6 @@ qDebug() << "Connecting...";
 qDebug() << "Start client";
         client->startClient(service);
 
-        clients.append(client);
     }
 
     ui->connectButton->setEnabled(true);

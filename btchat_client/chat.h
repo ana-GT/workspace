@@ -83,8 +83,7 @@ private:
     int currentAdapterIndex;
     Ui_Chat *ui;
 
-    ChatServer *server;
-    QList<ChatClient *> clients;
+    ChatClient * client;
     QList<QBluetoothHostInfo> localAdapters;
 
     QString localName;
