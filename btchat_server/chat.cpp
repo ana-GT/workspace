@@ -39,9 +39,7 @@
 ****************************************************************************/
 
 #include "chat.h"
-#include "remoteselector.h"
 #include "chatserver.h"
-#include "chatclient.h"
 
 #include <qbluetoothuuid.h>
 #include <qbluetoothserver.h>
@@ -62,7 +60,6 @@ Chat::Chat(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->quitButton, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(ui->connectButton, SIGNAL(clicked()), this, SLOT(connectClicked()));
     connect(ui->sendButton, SIGNAL(clicked()), this, SLOT(sendClicked()));
     //! [Construct UI]
 
@@ -99,7 +96,6 @@ Chat::Chat(QWidget *parent)
 
 Chat::~Chat()
 {
-    qDeleteAll(clients);
     delete server;
 }
 
@@ -151,51 +147,11 @@ int Chat::adapterFromUserSelection() const
 //! [clientDisconnected]
 void Chat::clientDisconnected()
 {
-    ChatClient *client = qobject_cast<ChatClient *>(sender());
-    if (client) {
-        clients.removeOne(client);
-        client->deleteLater();
-    }
+
 }
 //! [clientDisconnected]
 
-//! [Connect to remote service]
-void Chat::connectClicked()
-{
-    ui->connectButton->setEnabled(false);
 
-    // scan for services
-    const QBluetoothAddress adapter = localAdapters.isEmpty() ?
-                                           QBluetoothAddress() :
-                                           localAdapters.at(currentAdapterIndex).address();
-
-    RemoteSelector remoteSelector(adapter);
-    remoteSelector.startDiscovery(QBluetoothUuid(serviceUuid));
-    if (remoteSelector.exec() == QDialog::Accepted) {
-        QBluetoothServiceInfo service = remoteSelector.service();
-
-        qDebug() << "Connecting to service 2" << service.serviceName()
-                 << "on" << service.device().name();
-
-        // Create client
-        qDebug() << "Going to create client";
-        ChatClient *client = new ChatClient(this);
-qDebug() << "Connecting...";
-
-        connect(client, SIGNAL(messageReceived(QString,QString)),
-                this, SLOT(showMessage(QString,QString)));
-        connect(client, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
-        connect(client, SIGNAL(connected(QString)), this, SLOT(connected(QString)));
-        connect(this, SIGNAL(sendMessage(QString)), client, SLOT(sendMessage(QString)));
-qDebug() << "Start client";
-        client->startClient(service);
-
-        clients.append(client);
-    }
-
-    ui->connectButton->setEnabled(true);
-}
-//! [Connect to remote service]
 
 //! [sendClicked]
 void Chat::sendClicked()

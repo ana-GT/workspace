@@ -51,7 +51,6 @@
 QT_USE_NAMESPACE
 
 class ChatServer;
-class ChatClient;
 
 //! [declaration]
 class Chat : public QDialog
@@ -66,7 +65,6 @@ signals:
     void sendMessage(const QString &message);
 
 private slots:
-    void connectClicked();
     void sendClicked();
 
     void showMessage(const QString &sender, const QString &message);
@@ -84,7 +82,6 @@ private:
     Ui_Chat *ui;
 
     ChatServer *server;
-    QList<ChatClient *> clients;
     QList<QBluetoothHostInfo> localAdapters;
 
     QString localName;
