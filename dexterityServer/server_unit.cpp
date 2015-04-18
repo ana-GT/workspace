@@ -81,7 +81,7 @@ void server_unit::stopServer() {
     // Unregister service
     mServiceInfo.unregisterService();
     // Close Sockets
-    mClientSocket->close();
+    mClientSocket->deleteLater();
     // Close server
     delete mRfcommServer;
     mRfcommServer = 0;
@@ -106,9 +106,9 @@ void server_unit::clientConnected_slot() {
 
     mClientSocket = mRfcommServer->nextPendingConnection();
     if( !mClientSocket ) { return; }
-    emit dbgMsg_signal("Connecting readyRead to readSocket");
-    QObject::connect( mClientSocket, SIGNAL(readyRead), this, SLOT(readSocket_slot()) );
-    QObject::connect( mClientSocket, SIGNAL(disconnected), this, SLOT(clientDisconnected_slot()) );
+
+    QObject::connect( mClientSocket, SIGNAL(readyRead()), this, SLOT(readSocket_slot()) );
+    QObject::connect( mClientSocket, SIGNAL(disconnected()), this, SLOT(clientDisconnected_slot()) );
 
     emit clientConnected_signal( mClientSocket->peerName() );
 }

@@ -19,9 +19,9 @@ public slots:
 signals:
     void rcvMsg_signal( const QString &_sender,
                         const QString &_msg );
-    void dbgMsg_signal(const QString &_msg );
     void clientConnected_signal( const QString &_name );
     void clientDisconnected_signal( const QString &_name );
+    void dbgMsg_signal(const QString &_msg );
 
 private slots:
     void clientConnected_slot();
