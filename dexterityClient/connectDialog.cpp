@@ -18,26 +18,26 @@ connectDialog::connectDialog( const QBluetoothAddress &_localAdapter, QWidget *p
 {
     ui->setupUi(this);
 
-    QObject::connect( ui->scan_pushButton, SIGNAL(clicked()), this, SLOT(scan()) );
-    QObject::connect( ui->connect_pushButton, SIGNAL(clicked()), this, SLOT(connect()) );
+    QObject::connect( ui->connect_pushButton, SIGNAL(clicked()),
+                      this, SLOT(connect_slot()) );
 
     mDiscoveryAgent = new QBluetoothServiceDiscoveryAgent(_localAdapter);
 
     QObject::connect( mDiscoveryAgent, SIGNAL(serviceDiscovered(QBluetoothServiceInfo)),
-this, SLOT(serviceDiscovered(QBluetoothServiceInfo)) );
+                      this, SLOT(serviceDiscovered_slot(QBluetoothServiceInfo)) );
     QObject::connect( mDiscoveryAgent, SIGNAL(finished()),
-this, SLOT(discoveryFinished()) );
+                      this, SLOT(discoveryFinished_slot()) );
     QObject::connect( mDiscoveryAgent, SIGNAL(canceled()),
-this, SLOT(discoveryFinished()) );
+                      this, SLOT(discoveryFinished_slot()) );
 
     ui->connect_pushButton->setEnabled(false);
+    scan();
 }
 
 /**
 * @function ~connectDialog
 */
 connectDialog::~connectDialog() {
-
     delete ui;
     delete mDiscoveryAgent;
 }
@@ -96,7 +96,7 @@ QBluetoothServiceInfo connectDialog::service() const {
 /**
 * @function serviceDiscovered
 */
-void connectDialog::serviceDiscovered( const QBluetoothServiceInfo &_serviceInfo ) {
+void connectDialog::serviceDiscovered_slot( const QBluetoothServiceInfo &_serviceInfo ) {
 
     QString remoteName;
     if( _serviceInfo.device().name().isEmpty() ) {
@@ -104,10 +104,11 @@ void connectDialog::serviceDiscovered( const QBluetoothServiceInfo &_serviceInfo
     } else {
       remoteName = _serviceInfo.device().name();
     }
-    QListWidgetItem *item = new QListWidgetItem( QString::fromLatin1("%1 %2").arg(remoteName,
-_serviceInfo.serviceName()) );
-    ui->remote_listWidget->addItem(item);
-    printf("Service name from remote: %s \n", _serviceInfo.serviceName().toStdString().c_str() );
+
+    QString msg = QString::fromLatin1("%1 %2").arg(remoteName,
+                                                   _serviceInfo.serviceName());
+    QListWidgetItem *item = new QListWidgetItem( msg, ui->remote_listWidget );
+
     mDiscoveredServices.insert(item, _serviceInfo);
     mService = _serviceInfo;
 }
@@ -115,7 +116,7 @@ _serviceInfo.serviceName()) );
 /**
 * @function discoveryFinished
 */
-void connectDialog::discoveryFinished() {
+void connectDialog::discoveryFinished_slot() {
         ui->status_label->setText(QString("Service discovery finished "));
             ui->connect_pushButton->setEnabled(true);
 }
@@ -123,11 +124,10 @@ void connectDialog::discoveryFinished() {
 /**
 * @function connect
 */
-void connectDialog::connect() {
+void connectDialog::connect_slot() {
 
   mService = mDiscoveredServices.value( ui->remote_listWidget->currentItem() );
-  printf("Connecting!!!!!!! \n");
-  printf("SERVICE NAME: %s \n", mService.serviceName().toStdString().c_str() );
+
   if( mDiscoveryAgent->isActive() ) {
     mDiscoveryAgent->stop();
   }

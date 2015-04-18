@@ -19,14 +19,15 @@ public:
 
     void startDiscovery( const QBluetoothUuid &_uuid );
     void stopDiscovery();
+    void scan();
     QBluetoothServiceInfo service() const;
 
 private slots:
-  void scan();
-  void serviceDiscovered( const QBluetoothServiceInfo &_serviceInfo );
-  void discoveryFinished();
 
-  void connect();
+  void serviceDiscovered_slot( const QBluetoothServiceInfo &_serviceInfo );
+  void discoveryFinished_slot();
+
+  void connect_slot();
 
 private:
     Ui::connectDialog *ui;

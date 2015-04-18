@@ -19,18 +19,19 @@ class client_unit : public QObject {
   void stopClient();
 
   public slots:
-    void sendMsg( const QString &_message );
+    void sendMsg_slot( const QString &_message );
 
  signals:
-    void messageReceived( const QString &_sender,
-                          const QString &_message );
+    void rcvMsg_signal( const QString &_sender,
+                        const QString &_message );
 
-    void connected( const QString &_name );
-    void disconnected();
+    void connected_signal( const QString &_name );
+    void disconnected_signal();
+    void dbgMsg_signal( const QString &_msg );
 
     private slots:
-      void readSocket();
-      void connected();
+      void readSocket_slot();
+      void connected_slot();
 
  private:
       QBluetoothSocket* mSocket;

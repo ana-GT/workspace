@@ -21,16 +21,16 @@ public:
     void showPlainMsg( const QString &_msg );
 
  signals:
-    void sendMessage( const QString &_msg );
-    void receiveMessage( const QString &_msg );
+    void sendMsg_signal( const QString &_msg );
+    void rcvMsg_signal( const QString &_msg );
+    void serverDisconnected();
 
 private slots:
-    void connect();
-    void disconnect();
-    void sendMsg( const QString &_msg );
-    void showMsg( const QString &_sender, const QString &_msg );
-    void receiveMsg( const QString &_sender, const QString &_msg );
-    void clientDisconnected();
+    void connect_slot();
+    void sendTestMsg_slot();
+    void dbgMsg_slot(const QString &_msg );
+    void rcvMsg_slot( const QString &_sender, const QString &_msg );
+    void clientDisconnected_slot();
 
 private:
     Ui::DexterityClient *ui;

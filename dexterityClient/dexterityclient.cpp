@@ -20,9 +20,12 @@ DexterityClient::DexterityClient(QWidget *parent) :
 
     // Button messages
     QObject::connect( ui->connect_pushButton, SIGNAL(clicked()),
-                      this, SLOT(connect()) );
+                      this, SLOT(connect_slot()) );
     QObject::connect( ui->disconnect_pushButton, SIGNAL(clicked()),
-                      this, SLOT(disconnect()) );
+                      this, SLOT(clientDisconnected_slot()) );
+    QObject::connect( ui->testSend_pushButton, SIGNAL(clicked()),
+                      this, SLOT(sendTestMsg_slot()) );
+
 
     // Get local device
     QList<QBluetoothHostInfo>  adapters = QBluetoothLocalDevice::allDevices();
@@ -48,39 +51,52 @@ DexterityClient::~DexterityClient() {
 /**
  * @function connect
  */
-void DexterityClient::connect(){
+void DexterityClient::connect_slot(){
 
   connectDialog mCd( mLocalAdapter->address(), this );
 
   if( mCd.exec() == QDialog::Accepted ) {
-     qDebug() << "Accepted cd!! \n";
+
     QBluetoothServiceInfo service = mCd.service();
     mClient = new client_unit(this);
-     qDebug() << "Service name: "<< service.serviceName() << "\n";
-    QObject::connect( mClient, SIGNAL( messageReceived(QString,QString)),
-                      this, SLOT( receiveMsg( QString, QString)));
 
-    QObject::connect( mClient, SIGNAL( disconnected()),
-                      this, SLOT( clientDisconnected()));
+    QObject::connect( mClient, SIGNAL( rcvMsg_signal(QString,QString)),
+                      this, SLOT( rcvMsg_slot( QString, QString)));
 
-    QObject::connect( this, SIGNAL( sendMessage(QString)),
-                      mClient, SLOT(sendMsg(QString)));
+    QObject::connect( mClient, SIGNAL( disconnected_signal()),
+                      this, SLOT( clientDisconnected_slot()));
+
+    QObject::connect( this, SIGNAL( sendMsg_signal(QString)),
+                      mClient, SLOT(sendMsg_slot(QString)));
+
+    QObject::connect( mClient, SIGNAL( dbgMsg_signal(QString)),
+                      this, SLOT(dbgMsg_slot(QString)));
+
 
     QString msg = QString("Connected to service %1").arg( service.serviceName() );
     new QListWidgetItem(msg, ui->msgs_listWidget );
+    ui->disconnect_pushButton->setEnabled(true);
 
     mClient->startClient(service);
   } else {
-      qDebug() <<"No accepted cd \n";
+      QString msg = QString("[!] No service selected");
+      new QListWidgetItem( msg, ui->msgs_listWidget );
   }
 }
 
-/**
- * @function disconnect
- */
-void DexterityClient::disconnect() {
 
+/**
+ * @brief clientDisconnected_slot
+ */
+void DexterityClient::clientDisconnected_slot() {
+
+  client_unit* client = qobject_cast<client_unit*>(sender());
+  if( client ) {
+      client->deleteLater();
+  }
+  showPlainMsg("Client was disconnected \n");
 }
+
 
 /**
  * @function showPlainMsg
@@ -91,11 +107,11 @@ void DexterityClient::showPlainMsg( const QString &_msg ) {
 }
 
 /**
- * @function receiveMsg
+ * @function rcvMsg
  */
-void DexterityClient::receiveMsg( const QString &_sender,
-                                  const QString &_message ) {
-printf("GOT A MESSAGE!!! \n");
+void DexterityClient::rcvMsg_slot( const QString &_sender,
+                                   const QString &_message ) {
+
   QString msg = QString("%1: %2").arg( _sender, _message );
   new QListWidgetItem( msg, ui->msgs_listWidget );
 
@@ -112,15 +128,12 @@ printf("GOT A MESSAGE!!! \n");
   */
 }
 
-void DexterityClient::sendMsg( const QString &_msg ) {
+void DexterityClient::sendTestMsg_slot() {
+    emit sendMsg_signal("Testing sending msg");
 
 }
 
-void DexterityClient::showMsg(const QString &_sender, const QString &_msg) {
-
+void DexterityClient::dbgMsg_slot( const QString &_msg ) {
+    showPlainMsg( _msg );
 }
 
-void DexterityClient::clientDisconnected() {
-
-
-}

@@ -31,9 +31,11 @@ void client_unit::startClient( const QBluetoothServiceInfo &_remoteService ) {
   mSocket->connectToService( _remoteService );
 
   QObject::connect( mSocket, SIGNAL(readyRead()),
-this, SLOT(readSocket()) );
+                    this, SLOT(readSocket_slot()) );
   QObject::connect( mSocket, SIGNAL(connected() ),
-this, SLOT(connected()) );
+                    this, SLOT(connected_slot()) );
+  QObject::connect( mSocket, SIGNAL(disconnected()),
+                    this, SIGNAL(disconnected_signal()) );
 }
 
 /**
@@ -47,8 +49,15 @@ void client_unit::stopClient() {
 /**
 * @function
 */
-void client_unit::sendMsg( const QString &_msg ) {
+void client_unit::sendMsg_slot( const QString &_msg ) {
 
+    QByteArray text = _msg.toUtf8() + '\n';
+
+    if( mSocket->write( text ) < 0 ) {
+        emit dbgMsg_signal("Error sending msg to server");
+    } else {
+        emit dbgMsg_signal("Send msg to server all right");
+    }
 }
 
 
@@ -56,15 +65,15 @@ void client_unit::sendMsg( const QString &_msg ) {
 /**
 * @function
 */
-void client_unit::readSocket() {
+void client_unit::readSocket_slot() {
   if( !mSocket ) {
     return;
   }
-  printf("GOT A MESSAGE FROM CLIENT UNIT!!! \n");
+
   while( mSocket->canReadLine() ) {
     QByteArray line = mSocket->readLine();
-    emit messageReceived( mSocket->peerName(),
-QString::fromUtf8( line.constData(), line.length() ) );
+    emit rcvMsg_signal( mSocket->peerName(),
+                        QString::fromUtf8( line.constData(), line.length() ) );
   }
 
 }
@@ -73,6 +82,6 @@ QString::fromUtf8( line.constData(), line.length() ) );
 /**
 * @function
 */
-void client_unit::connected() {
-  emit connected( mSocket->peerName() );
+void client_unit::connected_slot() {
+  emit connected_signal( mSocket->peerName() );
 }

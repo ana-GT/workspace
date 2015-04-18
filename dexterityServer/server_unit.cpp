@@ -19,7 +19,7 @@ server_unit::~server_unit() {
 }
 
 /**
- * @brief server_unit::start
+ * @brief startServer
  * @param _localAdapter
  */
 void server_unit::startServer( const QBluetoothAddress &_localAdapter ) {
@@ -48,8 +48,8 @@ void server_unit::startServer( const QBluetoothAddress &_localAdapter ) {
     QBluetoothServiceInfo::Sequence classId;
 
     classId << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::SerialPort));
-    //mServiceInfo.setAttribute(QBluetoothServiceInfo::BluetoothProfileDescriptorList,
-     //                        classId);
+    mServiceInfo.setAttribute(QBluetoothServiceInfo::BluetoothProfileDescriptorList,
+                             classId);
 
     classId.prepend(QVariant::fromValue(QBluetoothUuid(serviceUuid)));
 
@@ -61,6 +61,9 @@ void server_unit::startServer( const QBluetoothAddress &_localAdapter ) {
 
     QBluetoothServiceInfo::Sequence protocolDescriptorList;
     QBluetoothServiceInfo::Sequence protocol;
+    protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::L2cap));
+    protocolDescriptorList.append(QVariant::fromValue(protocol));
+    protocol.clear();
     protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::Rfcomm))
              << QVariant::fromValue(quint8(mRfcommServer->serverPort()));
     protocolDescriptorList.append(QVariant::fromValue(protocol));
@@ -103,7 +106,7 @@ void server_unit::clientConnected_slot() {
 
     mClientSocket = mRfcommServer->nextPendingConnection();
     if( !mClientSocket ) { return; }
-
+    emit dbgMsg_signal("Connecting readyRead to readSocket");
     QObject::connect( mClientSocket, SIGNAL(readyRead), this, SLOT(readSocket_slot()) );
     QObject::connect( mClientSocket, SIGNAL(disconnected), this, SLOT(clientDisconnected_slot()) );
 
@@ -115,11 +118,10 @@ void server_unit::clientConnected_slot() {
  */
 void server_unit::clientDisconnected_slot() {
 
-        QBluetoothSocket* socket = qobject_cast<QBluetoothSocket*>( sender() );
-        if( !socket ) { return; }
-
-        emit clientDisconnected_signal( socket->peerName() );
-        socket->deleteLater();
+        if( !mClientSocket ) { return; }
+        emit dbgMsg_signal("Client is being disconnected \n");
+        emit clientDisconnected_signal( mClientSocket->peerName() );
+        mClientSocket->deleteLater();
 
 }
 
@@ -128,13 +130,13 @@ void server_unit::clientDisconnected_slot() {
  */
 void server_unit::readSocket_slot() {
 
-        // In our case we only have one socket mSocket, so this is not really necessary
-       QBluetoothSocket* socket = qobject_cast<QBluetoothSocket*>( sender() );
-        if( !socket ) { return; }
+        emit dbgMsg_signal("Entered readSocket!");
 
-        while( socket->canReadLine() ) {
-            QByteArray line = socket->readLine().trimmed();
-            emit rcvMsg_signal( socket->peerName(),
+
+        while( mClientSocket->canReadLine() ) {
+            QByteArray line = mClientSocket->readLine().trimmed();
+            emit dbgMsg_signal("Received a message from client!");
+            emit rcvMsg_signal( mClientSocket->peerName(),
                                 QString::fromUtf8(line.constData(), line.length()));
         }
 
