@@ -14,15 +14,19 @@
    <string>Remote connection</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog {
-border-width: 10px;
-}</string>
+   <string notr="true">QDialog { border: 2px solid;}</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0" colspan="2">
     <widget class="QLabel" name="status_label">
      <property name="text">
       <string>Available connections:</string>
+     </property>
+     <property name="margin">
+      <number>1</number>
+     </property>
+     <property name="indent">
+      <number>4</number>
      </property>
     </widget>
    </item>

@@ -3,6 +3,7 @@
  */
 
 #include "client_unit.h"
+#include "test2_client.h"
 
 /**
  * @function

@@ -1,19 +1,21 @@
-#include "test1_client.h"
-#include "ui_test1_client.h"
+#include "test2_client.h"
+#include "ui_test2_client.h"
 #include <iostream>
 #include "connectDialog.h"
+#include "selectObjectDialog.h"
+#include <sstream>
 
 /**
 * @brief Constructor
 * @param parent
 */
-Test1_Client::Test1_Client(QWidget *parent) :
+Test2_Client::Test2_Client(QWidget *parent) :
     QMainWindow(parent),
     mLocalAdapter(0),
     mClient(0),
     mTimer(0),
     mNumTimeouts(0),
-    ui(new Ui::Test1_Client) {
+    ui(new Ui::Test2_Client) {
 
     ui->setupUi(this);
 
@@ -53,13 +55,14 @@ Test1_Client::Test1_Client(QWidget *parent) :
 * @brief Destructor
 * @param parent
 */
-Test1_Client::~Test1_Client() {
+Test2_Client::~Test2_Client() {
 }
+
 
 /**
  * @function sendMsg_slot
  */
-void Test1_Client::sendMsg_slot() {
+void Test2_Client::sendMsg_slot() {
 
     QObject* obj = sender();
     bool send = false;
@@ -96,7 +99,7 @@ void Test1_Client::sendMsg_slot() {
 /**
 * @function connect
 */
-void Test1_Client::connect_slot(){
+void Test2_Client::connect_slot(){
 
     connectDialog mCd( mLocalAdapter->address(), this );
 
@@ -127,7 +130,7 @@ void Test1_Client::connect_slot(){
 /**
  * @function showPlainMsg
  */
-void Test1_Client::showPlainMsg( const QString &_msg ) {
+void Test2_Client::showPlainMsg( const QString &_msg ) {
   new QListWidgetItem( _msg, ui->msgs_listWidget );
 
 }
@@ -135,7 +138,7 @@ void Test1_Client::showPlainMsg( const QString &_msg ) {
 /**
  * @function rcvMsg
  */
-void Test1_Client::rcvMsg_slot( const QString &_sender,
+void Test2_Client::rcvMsg_slot( const QString &_sender,
                                 const QString &_message ) {
 
   QString msg = QString("%1: %2").arg( _sender, _message );
@@ -153,12 +156,37 @@ void Test1_Client::rcvMsg_slot( const QString &_sender,
     stopUpdate();
   }
   */
+
+  std::string msg_type;
+  std::string image_name;
+  std::istringstream iss( _message.toStdString() );
+  iss >> msg_type;
+  iss >> image_name;
+
+  //-- RECEIVE IMAGE FROM SERVER
+  if( msg_type.compare( "RCV_IMG") == 0 ) {
+
+      char localFile[255];
+      sprintf( localFile, "/storage/emulated/0/Bluetooth/%s", image_name.c_str() );
+      SelectObjectDialog so( this);
+      so.loadFile( QString(localFile) );
+
+    if( so.exec() == QDialog::Accepted ) {
+         so.getClicked( mPx, mPy );
+         // Send acknowledgment back
+         QString ack_msg = QString("CLIENT_INPUT %1 %2").arg( mPx ).arg( mPy );
+         emit sendMsg_signal( ack_msg );
+    }
+
+  }
+
 }
+
 
 /**
 * @function clientDisconnected_slot
 */
-void Test1_Client::clientDisconnected_slot() {
+void Test2_Client::clientDisconnected_slot() {
 
    if( mClient ) {
         mClient->deleteLater();
@@ -171,14 +199,14 @@ void Test1_Client::clientDisconnected_slot() {
 /**
  * @funcion dbgMsg_slot
  */
-void Test1_Client::dbgMsg_slot( const QString &_msg ) {
+void Test2_Client::dbgMsg_slot( const QString &_msg ) {
     showPlainMsg( _msg );
 }
 
 /**
  * @function updateTimeDisplay_slot
  */
-void Test1_Client::updateTimeDisplay_slot() {
+void Test2_Client::updateTimeDisplay_slot() {
 
    mNumTimeouts++;
    // Tenths of second show

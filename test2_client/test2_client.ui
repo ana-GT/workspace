@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Test1_Client</class>
- <widget class="QMainWindow" name="Test1_Client">
+ <class>Test2_Client</class>
+ <widget class="QMainWindow" name="Test2_Client">
   <property name="geometry">
    <rect>
     <x>0</x>
